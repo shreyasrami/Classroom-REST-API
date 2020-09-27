@@ -6,18 +6,21 @@ from rest_framework.decorators import api_view
 from .serializers import RegisterTeacherSerializer,RegisterStudentSerializer,LoginSerializer
 from django.contrib import auth
 from rest_framework import generics
-
+from rest_framework.authtoken.models import Token
     
 class RegisterTeacher(generics.GenericAPIView):
+    serializer_class = RegisterTeacherSerializer
     def post(self,request,*args,**kwargs):
         serializer = RegisterTeacherSerializer(data=request.data)
         data = {}
         if serializer.is_valid():
             user = serializer.save()
+            token = Token.objects.get_or_create(user=user).key
             data = {
                 'response' : 'Teacher account successfully created',
                 'email' : user.email,
                 'subject' : user.subject,
+                'token' : token
             }
         else:
             data = serializer.errors
@@ -26,15 +29,18 @@ class RegisterTeacher(generics.GenericAPIView):
 
 
 class RegisterStudent(generics.GenericAPIView):
+    serializer_class = RegisterStudentSerializer
     def post(self,request,*args,**kwargs):
         serializer = RegisterStudentSerializer(data=request.data)
         data = {}
         if serializer.is_valid():
             user = serializer.save()
+            token = Token.objects.get_or_create(user=user).key
             data = {
                 'response' : 'Student account successfully created',
                 'sap_id' : user.sap_id,
-                'email' : user.email
+                'email' : user.email,
+                'token' : token
             }
         else:
             data = serializer.errors
@@ -42,17 +48,19 @@ class RegisterStudent(generics.GenericAPIView):
         
         
 class Login(generics.GenericAPIView):
+    serializer_class = LoginSerializer
     def post(self,request,*args,**kwargs):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data['email']
             password = serializer.validated_data['password']
             user = auth.authenticate(email=email,password=password)
+            token = Token.objects.get(user=user).key
             if user is not None:
                 auth.login(request,user)
-                data = {'response' : 'User successfully logged in'}
+                data = {'response' : 'User successfully logged in', 'token' : token}
             else:
-                data = {'response' : 'Invalid Email or Password'}      
+                data = {'response' : 'Invalid Email or Password', 'token' : token}      
         else:
             data = serializer.errors
         return Response(data)
