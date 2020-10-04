@@ -1,6 +1,7 @@
 
 from django.contrib import admin
 from account.models import User,Teacher,Student
+from rest_framework.authtoken.models import Token
 
 # Register your models here.
 
@@ -16,6 +17,7 @@ class UserAdmin(admin.ModelAdmin):
             password = form.cleaned_data["password"]
             obj.set_password(password)
         obj.save()
+        Token.objects.create(user=obj)
 
 
     
@@ -32,6 +34,7 @@ class TeacherAdmin(admin.ModelAdmin):
             password = form.cleaned_data["password"]
             obj.set_password(password)
         obj.save()
+        Token.objects.create(user=obj)
 
     
 
@@ -48,4 +51,5 @@ class StudentAdmin(admin.ModelAdmin):
             password = form.cleaned_data["password"]
             obj.set_password(password)
         obj.save()
+        Token.objects.create(user=obj)
 

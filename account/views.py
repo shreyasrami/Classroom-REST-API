@@ -3,6 +3,9 @@
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from django.views import View
+from django.shortcuts import redirect
+from django.contrib.auth.models import auth
 from .serializers import RegisterTeacherSerializer,RegisterStudentSerializer,LoginSerializer
 from django.contrib import auth
 from rest_framework import generics
@@ -15,7 +18,7 @@ class RegisterTeacher(generics.GenericAPIView):
         data = {}
         if serializer.is_valid():
             user = serializer.save()
-            token = Token.objects.get_or_create(user=user).key
+            token = Token.objects.create(user=user).key
             data = {
                 'response' : 'Teacher account successfully created',
                 'email' : user.email,
@@ -35,7 +38,7 @@ class RegisterStudent(generics.GenericAPIView):
         data = {}
         if serializer.is_valid():
             user = serializer.save()
-            token = Token.objects.get_or_create(user=user).key
+            token = Token.objects.create(user=user).key
             data = {
                 'response' : 'Student account successfully created',
                 'sap_id' : user.sap_id,
@@ -59,10 +62,15 @@ class Login(generics.GenericAPIView):
             if user is not None:
                 auth.login(request,user)
                 data = {'response' : 'User successfully logged in', 'token' : token}
-            else:
+            else:                                                                                                    
                 data = {'response' : 'Invalid Email or Password', 'token' : token}      
         else:
             data = serializer.errors
         return Response(data)
+
+class Logout(View):
+    def get(self,request,*args,**kwargs):
+        auth.logout(request)
+        return redirect('/')
 
         

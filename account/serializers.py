@@ -2,11 +2,13 @@ from .models import User,Teacher,Student
 from rest_framework import serializers
 
 
+
 class RegisterTeacherSerializer(serializers.ModelSerializer):
     confirm_pass = serializers.CharField(style={'input_type' : 'password'},write_only=True)
+    password = serializers.CharField(style={'input_type' : 'password'},write_only=True)
     class Meta:
         model = Teacher
-        fields = ['first_name', 'last_name', 'username', 'department', 'is_teacher', 'subject', 'email', 'password','confirm_pass']
+        fields = ['first_name', 'last_name', 'username', 'department', 'subject', 'email', 'password','confirm_pass']
 
     def save(self):
         user = Teacher(
@@ -14,7 +16,7 @@ class RegisterTeacherSerializer(serializers.ModelSerializer):
             last_name=self.validated_data['last_name'],
             username=self.validated_data['username'],
             department=self.validated_data['department'],
-            is_teacher=self.validated_data['is_teacher'],
+            is_teacher=True,
             subject=self.validated_data['subject'],
             email=self.validated_data['email']
 
@@ -30,9 +32,10 @@ class RegisterTeacherSerializer(serializers.ModelSerializer):
 
 class RegisterStudentSerializer(serializers.ModelSerializer):
     confirm_pass = serializers.CharField(style={'input_type' : 'password'},write_only=True)
+    password = serializers.CharField(style={'input_type' : 'password'},write_only=True)
     class Meta:
         model = Student
-        fields = ['first_name', 'last_name', 'username', 'department', 'is_student', 'division', 'sap_id', 'email', 'password','confirm_pass']
+        fields = ['first_name', 'last_name', 'username', 'department', 'division', 'sap_id', 'email', 'password','confirm_pass']
     
     def save(self):
         user = Student(
@@ -40,7 +43,7 @@ class RegisterStudentSerializer(serializers.ModelSerializer):
             last_name=self.validated_data['last_name'],
             username=self.validated_data['username'],
             department=self.validated_data['department'],
-            is_student=self.validated_data['is_student'],
+            is_student=True,
             division=self.validated_data['division'],
             sap_id=self.validated_data['sap_id'],
             email=self.validated_data['email']
