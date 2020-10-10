@@ -1,5 +1,5 @@
 from django.db import models
-from account.models import Teacher
+from account.models import Teacher,Student
 # Create your models here.
 
 class Quiz(models.Model):
@@ -25,6 +25,24 @@ class Question(models.Model):
     correct_choice = models.CharField(max_length=30)
 
     def __str__(self):
-        return self.quiz.topic + '_' + str(self.id)
+        return str(self.id)
 
+    
+
+class Answer(models.Model):
+    student = models.ForeignKey(Student,on_delete=models.CASCADE)
+    question = models.ForeignKey('Question',on_delete=models.CASCADE)
+    answer = models.CharField(max_length=30)
+    
+    def __str__(self):
+        return self.student.username + '_' + str(self.question.id) + '_' + str(self.id)
+
+
+class Result(models.Model):
+    student = models.ForeignKey(Student,on_delete=models.CASCADE)
+    quiz = models.ForeignKey('Quiz',on_delete=models.CASCADE)
+    marks_obtained = models.IntegerField()
+
+    def __str__(self):
+        return self.student.username + '_' + self.quiz.topic
     
