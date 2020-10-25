@@ -13,6 +13,10 @@ class Quiz(models.Model):
     class Meta:
         verbose_name_plural = 'Quizzes'
     
+    @property
+    def questions(self):
+        return self.question_set.all()
+    
 
 class Question(models.Model):
 
@@ -26,7 +30,8 @@ class Question(models.Model):
 
     def __str__(self):
         return str(self.id)
-
+    
+    
     
 
 class Answer(models.Model):

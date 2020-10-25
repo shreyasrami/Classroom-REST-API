@@ -8,50 +8,36 @@ from .models import Question,Quiz,Answer,Result
 from account.models import Teacher,Student
 from rest_framework.response import Response
 from rest_framework import generics
-from .serializers import QuestionSerializer,QuizSerializer,AttemptQuizSerializer
+from .serializers import QuestionSerializer,QuizSerializer,QuizViewSerializer,AttemptQuizSerializer
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsTeacher,IsStudent,NotAttempted,HasAttempted
 import ast
+from rest_framework import viewsets
+from rest_framework import permissions
+from rest_framework.decorators import action
 # Create your views here.
 
-class DisplayQuizzes(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+
+class QuizViewSet(viewsets.ModelViewSet):
     
-    def get(self,request,*args,**kwargs):
-        if request.user.is_student:
-            quizzes = list(Quiz.objects.all().values())
+    def get_queryset(self):
+        if self.request.user.is_teacher:
+            teacher = Teacher.objects.get(email=self.request.user)
+            return Quiz.objects.filter(teacher=teacher)
         else:
-            quizzes = list(Quiz.objects.filter(teacher=request.user).values())
-        context = {
-            'quizzes' : quizzes
-        }
-        return Response(context)
-
-
-class DisplayQuestions(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated,IsTeacher]
-    
-    def get(self,request,*args,**kwargs):
-        instance = Quiz.objects.get(id=kwargs['quiz_id'])
-        questions = list(Question.objects.filter(quiz=instance).values())
-        context = {
-            'questions' : questions
-        }
-        return Response(context)
-
-
-class CreateInfo(generics.GenericAPIView):
-    serializer_class = QuizSerializer
-    permission_classes = [IsAuthenticated,IsTeacher]
-    
-    def post(self,request,*args,**kwargs):
-        serializer = QuizSerializer(data=request.data)
-        if serializer.is_valid():
-            teacher = Teacher.objects.get(email=request.user)
-            instance = serializer.save(teacher=teacher)
-            return redirect('create',instance.id)
+            return Quiz.objects.all()
+            
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return (IsAuthenticated(),)
         else:
-            return Response(serializer.errors)
+            return (IsTeacher(),)
+
+    def get_serializer_class(self):
+        if self.request.user.is_teacher:
+            return QuizSerializer
+        else:
+            return QuizViewSerializer
 
 
 class Create(generics.GenericAPIView):
@@ -139,21 +125,6 @@ class UpdateQuestion(generics.GenericAPIView):
             return Response({'response':'Question updated'})
         else:
             return Response(serializer.errors)
-
-
-class UpdateQuiz(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated,IsTeacher]
-    serializer_class = QuizSerializer
-    
-    def post(self,request,*args,**kwargs):
-        quiz = Quiz.objects.get(id=kwargs['quiz_id'])
-        serializer = QuizSerializer(quiz,data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'response':'Quiz updated'})
-        else:
-            return Response(serializer.errors)
-
 
 
 
